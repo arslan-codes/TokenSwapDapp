@@ -1,5 +1,6 @@
 import React from "react";
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Swap = () => {
   const [TokenText, SetTokenText] = useState("Select Token");
@@ -18,7 +19,22 @@ const Swap = () => {
     document.getElementById("my_modal_3").close();
   };
   return (
-    <div className="mt-4">
+    <motion.div
+      initial={{ y: -500, opacity: 0 }}
+      animate={{
+        y: 0,
+        opacity: 1,
+        transition: {
+          type: "spring",
+          stiffness: 120,
+          damping: 10,
+          mass: 1,
+          bounce: 0.5,
+          duration: 2,
+        },
+      }}
+      className="mt-4 rounded-2xl"
+    >
       <div className=" h-auto w-full  p-6 border-2 rounded-2xl flex flex-col">
         <div className="text-4xl font-semibold text-start">Swap</div>
         <div className=" mx-4 rounded-2xl my-2 bg-gray-100">
@@ -87,17 +103,17 @@ const Swap = () => {
           </div>
         </div>
         <div>
-          <div className="text-start mx-6 ">
-            <p>Extimated Gas : {gas} Wei</p>
+          <div className="text-start mx-6 my-2 ">
+            <p>Estimated Gas : {gas} Wei</p>
           </div>
           <div>
-            <div className="btn btn-warning mx-4 rounded-2xl my-2 w-5/6">
-              Swap Token
+            <div className=" btn btn-success  mx-4 rounded-2xl my-2 h-20 items-center flex justify-center">
+              <p className="text-2xl font-bold text-black">Swap </p>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

@@ -43,7 +43,7 @@ export default {
           accent: colors.pink[500],
           neutral: colors.gray[500],
           "base-100": colors.white,
-          success: "#affc41", // This ensures DaisyUI picks up your custom success color
+          // success: "#affc41", // This ensures DaisyUI picks up your custom success color
         },
       },
     ],

@@ -1,5 +1,5 @@
 import Swap from "./Swap";
-export default function Home() {
+const Home = () => {
   return (
     <div className="bg">
       <div className="relative isolate px-6 pt-14 lg:px-8">
@@ -16,4 +16,5 @@ export default function Home() {
       </div>
     </div>
   );
-}
+};
+export default Home;

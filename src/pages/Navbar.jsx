@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useContext, useState } from "react";
 import { Dialog, DialogPanel } from "@headlessui/react";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
-import { useState } from "react";
+import { Link } from "react-router-dom";
+import DexContext from "./Context";
 
 const Navbar = () => {
+  const { ConnectWallet, account, msg } = useContext(DexContext);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -14,9 +16,9 @@ const Navbar = () => {
           className="flex items-center justify-between p-6 lg:px-8"
         >
           <div className="flex lg:flex-1">
-            <a href="#" className="text-3xl font-mono">
+            <Link to="/" className="text-3xl font-mono">
               <span className="">Dex Aggergator</span>
-            </a>
+            </Link>
           </div>
           <div className="flex lg:hidden">
             <button
@@ -29,14 +31,21 @@ const Navbar = () => {
             </button>
           </div>
           <div className="hidden lg:flex lg:gap-x-12">
-            <button className="btn btn-outline">Default</button>
-            <button className="btn btn-outline btn-primary">Primary</button>
-            <button className="btn btn-outline btn-secondary">Secondary</button>
-            <button className="btn btn-outline text-orange-700 hover:bg-orange-400 hover:text-black hover:border-orange-500">
-              Accent
+            <Link to="/" className="btn btn-outline btn-wide">
+              Home
+            </Link>
+            <Link to="/About" className="btn btn-outline btn-wide btn-primary">
+              About
+            </Link>
+          </div>
+          <div className="hidden lg:flex lg:flex-1 lg:justify-end">
+            <button
+              className="btn btn-outline btn-wide text-orange-500 hover:bg-orange-400 hover:text-black hover:border-orange-500"
+              onClick={ConnectWallet}
+            >
+              {msg ? <p>Connect Wallet</p> : <p>{msg}</p>}
             </button>
           </div>
-          <div className="hidden lg:flex lg:flex-1 lg:justify-end"></div>
         </nav>
       </header>
     </div>
