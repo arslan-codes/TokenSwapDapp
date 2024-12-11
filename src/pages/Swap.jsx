@@ -1,7 +1,6 @@
 import React from "react";
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-
+import { motion } from "framer-motion";
 const Swap = () => {
   const [TokenText, SetTokenText] = useState("Select Token");
   const [token2, SetTokenText2] = useState("Select Token");

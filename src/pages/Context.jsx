@@ -8,7 +8,8 @@ export const DexProvider = ({ children }) => {
   const [account, setAccount] = useState(null);
   const [msg, setMsg] = useState("");
 
-  async function ConnectWallet() {
+  // Move ConnectWallet inside the component body
+  const ConnectWallet = async () => {
     if (!window.ethereum) {
       setMsg("Install MetaMask");
     } else {
@@ -21,7 +22,7 @@ export const DexProvider = ({ children }) => {
         console.log(error);
       }
     }
-  }
+  };
 
   const value = {
     ConnectWallet,
