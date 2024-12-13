@@ -1,0 +1,25 @@
+post1
+where to fetch all tokens
+Part 4. Fetch and Display Token List from CoinGecko API
+
+We currently have a modal, but nothing inside. Let's retrieve a list of ERC20 tokens to populate the modal, so that a user can select a token to trade.
+
+Uniswap has the Token Lists project, a standard for creating lists of ERC20 tokens to filter out high-quality, legitimate tokens from scams, fakes, and duplicates. Read more about the importance of token lists here.
+
+The CoinGecko list is one of the more robust ones, so we will use this query https://tokens.coingecko.com/uniswap/all.json. I recommend you directly run that in your browser to see what is returned back. You should see a JSON object containing each token's name, logoURI, symbol, and decimals. We will use all these parameters as we build this dapp.
+
+post2
+
+<!-- https://tokenlists.org/ -->
+
+![alt text](image.png)
+
+price vs /quote Endpoints
+
+Now we need to create a function called getPrice(). Inside, we will be calling the GET /swap/v1/price endpoint.
+
+/price is nearly identical to /quote, but with a few key differences. /price does not return a transaction that can be submitted on-chain; it simply provides us the same information. Think of it as the "read-only" version of /quote".
+
+This is also important because /quote returns back an order in which a Market Maker has committed their assets to. So if we ping /quote too much when we really are just asking for a price and not ready to submit an order, then this can clog up the system!
+
+Here is an example of a GET HTTP /price request. The call is almost identical to /quote: https://api.0x.org/swap/v1/price?sellToken=ETH&buyToken=DAI&sellAmount=1000000000000000000

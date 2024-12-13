@@ -1,33 +1,125 @@
-// It's more than likely that it uses a liquidity aggregator which sources all the possible prices across off-chain (e.g. Market Makers, Orderbooks) and on-chain (e.g. DEXs, AMMs) and routes the best price for the user.
-
-// In this tutorial, we will learn how to use the 0x API swap endpoint which allows users to fetch available quotes across the liquidity supply and uses smart order routing to split up a transaction across decentralized exchange networks to be filled with the lowest slippage possible while minimizing transaction costs.
-
-// This is the same endpoint that is behind swaps in major wallets and exchanges such as MetaMask, Coinbase wallet, Zapper, and many more.
-
-// Note that we won’t need to write any smart contracts to find and settle the trade! Instead, the 0x API allows web3 developers to easily tap into the 0x Protocol smart contracts which take care of all the logic used to settle a trade, allowing web developers to focus on building the best trade experience.
-
-// By the end of this tutorial, you will learn how to do the following:
-
-//     Understand why Liquidity Aggregation is important
-//     Query and display an ERC20 token list
-//     Use 0x API /swap Endpoint
-//     Set a Token Allowance
-//     Build a Simple Token Swap DApp that connects to MetaMask using web3.js
-// A couple of key features to call out (code found in index.html):
-
-//     Sign-in with MetaMask button - When this app is complete, clicking this button will enable the user to connect to their MetaMask wallet and enable the "Swap" button.
-//     Swap Box
-//         SELECT A TOKEN - Currently these sections just change color when a cursor hovers over them; by the end, users will be able to click and display a list of available tokens to swap.
-//         amount - This is an input form that allows user to input a number.
-//     Estimated Gas - The swap endpoint will return back estimated gas for the swap to go through. We will display that here.
-//     Swap Button - As mentioned above, the "Swap" button is currently disabled, but we will enable it when the user has signed into MetaMask.
-
-// Take a look around these elements in index.js taking note of their ids, class well as their corresponding styling in style.css.
-
-import React from "react";
+import { motion } from "framer-motion";
 
 const About = () => {
-  return <div>About</div>;
+  return (
+    <div className="relative isolate px-6 pt-14 lg:px-8">
+      <div className="mx-auto max-w-full py-8 sm:py-10 lg:py-10">
+        <div className="sm:mb-8 sm:flex sm:justify-center"></div>
+        <div className=" flex justify-center">
+          <motion.div
+            initial={{ y: -300, opacity: 0 }}
+            animate={{
+              y: 0,
+              opacity: 1,
+              transition: {
+                type: "spring",
+                stiffness: 120,
+                damping: 10,
+                mass: 1,
+                bounce: 0.5,
+                duration: 2,
+              },
+            }}
+            className="w-1/3 h-auto"
+          >
+            <h1 className="font-bold m-6 text-3xl text-center">
+              About the Token Swap DApp{" "}
+            </h1>{" "}
+            <div className="relative p-4 bg-black border-2 border-black shadow-lg group">
+              <div className="absolute inset-0 -translate-x-2 border-2 -translate-y-2 border-black bg-green-300 group-hover:bg-green-200"></div>
+              <div className="relative z-10 group-hover:bg-green-200">
+                <p className="text-base font-mono">
+                  Welcome to our Token Swap DApp, inspired by platforms like
+                  Matcha.xyz and powered by the 0x Protocol. This decentralized
+                  application provides a seamless experience for trading ERC-20
+                  tokens, leveraging liquidity aggregation to ensure you always
+                  get the best price.
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+        <div className="flex justify-center gap-6 m-10">
+          <motion.div
+            initial={{ x: -300, opacity: 0 }}
+            animate={{
+              x: 0,
+              opacity: 1,
+              transition: {
+                type: "spring",
+                stiffness: 120,
+                damping: 10,
+                mass: 1,
+                bounce: 0.5,
+                duration: 2,
+              },
+            }}
+            className="relative p-4 bg-black border-2 border-black shadow-lg group w-1/3"
+          >
+            <div className="absolute inset-0 -translate-y-1 border-2 translate-x-1 border-black bg-white "></div>
+            <div className="relative z-10 ">
+              <h1 className="font-bold my-4  text-3xl">
+                Why Liquidity Aggregation Matters
+              </h1>
+              <p>
+                When swapping tokens, finding the optimal price is crucial. Our
+                DApp aggregates liquidity from various decentralized exchange
+                (DEX) networks, automated market makers (AMMs), and even
+                off-chain sources like market makers and order books. By using
+                the 0x Swap API, we ensure trades are executed with minimal
+                slippage, lower transaction costs, and optimal routing,
+                enhancing the overall trading experience.
+              </p>
+            </div>
+          </motion.div>
+          <motion.div
+            initial={{ x: 300, opacity: 0 }}
+            animate={{
+              x: 0,
+              opacity: 1,
+              transition: {
+                type: "spring",
+                stiffness: 120,
+                damping: 10,
+                mass: 1,
+                bounce: 0.5,
+                duration: 2,
+              },
+            }}
+            className="relative p-4  bg-black border-2 border-black shadow-lg group w-1/3"
+          >
+            <div className="absolute inset-0 -translate-y-1 border-2 translate-x-1 border-black bg-white "></div>
+            <div className="relative z-10 ">
+              <h1 className="font-bold my-4  text-3xl">How It Works</h1>
+              <div className="px-4">
+                <ul className="list-disc">
+                  <li>
+                    <strong> Connect Your Wallet:</strong> Link your wallet,
+                    such as MetaMask, in just a few clicks.
+                  </li>
+                  <li>
+                    {" "}
+                    <strong> Select Tokens:</strong> Choose the tokens you want
+                    to swap.{" "}
+                  </li>
+                  <li>
+                    <strong> Get the Best Price:</strong> Our system instantly
+                    fetches and displays the best available price for your
+                    trade.
+                  </li>
+
+                  <li>
+                    <strong> Confirm and Swap: </strong>Approve the transaction,
+                    and you’re done!
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default About;

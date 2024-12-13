@@ -16,9 +16,14 @@ const Navbar = () => {
           className="flex items-center justify-between p-6 lg:px-8"
         >
           <div className="flex lg:flex-1">
-            <Link to="/" className="text-3xl font-mono">
-              <span className="">Dex Aggergator</span>
-            </Link>
+            <div className="relative p-4 bg-black border-2 border-black shadow-lg group">
+              <div className="absolute inset-0 -translate-y-1 border-2 translate-x-1 border-black bg-white group-hover:bg-gray-200"></div>
+              <div className="relative z-10 group-hover:bg-gray-200">
+                <Link to="/" className="text-3xl font-mono">
+                  <span className="">Dex Aggergator</span>
+                </Link>
+              </div>
+            </div>
           </div>
           <div className="flex lg:hidden">
             <button
@@ -31,20 +36,37 @@ const Navbar = () => {
             </button>
           </div>
           <div className="hidden lg:flex lg:gap-x-12">
-            <Link to="/" className="btn btn-outline btn-wide">
+            <Link
+              to="/"
+              className=" text-center h-12 justify-center flex items-center border-4 border-black bg-black text-white hover:bg-white hover:text-black  hover:border-black btn-wide"
+            >
               Home
             </Link>
-            <Link to="/About" className="btn btn-outline btn-wide btn-primary">
+            <Link
+              to="/About"
+              className=" text-center h-12 justify-center flex items-center border-4 border-black bg-black text-white hover:bg-white hover:text-black  hover:border-black btn-wide"
+            >
               About
             </Link>
           </div>
-          <div className="hidden lg:flex lg:flex-1 lg:justify-end">
-            <button
-              className="btn btn-outline btn-wide text-orange-500 hover:bg-orange-400 hover:text-black hover:border-orange-500"
-              onClick={ConnectWallet}
-            >
-              {msg ? <p>Connect Wallet</p> : <p>{msg}</p>}
-            </button>
+          <div className="hidden lg:flex lg:flex-1 lg:justify-end ">
+            <div class="relative p-4 w-44 bg-black border-2 border-black shadow-lg  hover:cursor-pointer group">
+              <div class="absolute inset-0 -translate-y-1 -translate-x-1 border-2 border-black bg-orange-400 group-hover:bg-white"></div>
+
+              <div class="relative z-10  group-hover:bg-white">
+                <button onClick={ConnectWallet} className="text-center *:">
+                  {" "}
+                  {msg ? (
+                    <p className="text-center">
+                      {/* {msg} */}
+                      {account.slice(0, 10)}
+                    </p>
+                  ) : (
+                    <p>Connect Wallet</p>
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         </nav>
       </header>

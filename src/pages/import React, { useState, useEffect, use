@@ -1,0 +1,202 @@
+import React, { useState, useEffect, useRef } from "react";
+import { motion } from "framer-motion";
+import axios from "axios";
+
+const Swap = () => {
+  const modalRef = useRef(null);
+  const [token1, setToken1] = useState();
+  const [token2, setToken2] = useState();
+  const [formAmmount, SetFromAmmount] = useState();
+  const [toAmount, SettoAmount] = useState();
+  const [searchKeyword, SetSearchItem] = useState("");
+  const [AllToken, ResetALLToken] = useState([]);
+  const [tokens, setAllTokens] = useState([]);
+  const [gas, SetGas] = useState(0.0);
+
+  useEffect(() => {
+    async function fetch() {
+      console.log("Fetching tokens...");
+      try {
+        const response = await axios.get(
+          "https://tokens.coingecko.com/uniswap/all.json"
+        );
+        const fetchedTokens = response.data.tokens.slice(0, 100) || [];
+        setAllTokens(fetchedTokens);
+        ResetALLToken(fetchedTokens);
+      } catch (error) {
+        console.error("Error fetching tokens:", error);
+      }
+    }
+    fetch();
+    console.log("fetched");
+  }, []);
+
+  function searchTokens(value) {
+    if (!value) {
+      // Reset tokens to the original list when the search value is cleared
+      setAllTokens(AllToken);
+    } else {
+      // Filter tokens based on the search value
+      const filteredTokens = tokens.filter((item) =>
+        item.name.toLowerCase().includes(value.toLowerCase())
+      );
+      setAllTokens(filteredTokens);
+    }
+  }
+
+  const handleOpenModal = () => {
+    const modal = document.getElementById("my_modal_2");
+    modal.showModal();
+    if (modalRef.current) {
+      modalRef.current.scrollTop = 0;
+    }
+  };
+
+  const handleChangeToken = (token) => {
+    setToken1(token);
+    setAllTokens(AllToken);
+    document.getElementById("my_modal_2").close();
+  };
+
+  const handleChangeTokenBelow = (token) => {
+    setToken2(token);
+    setAllTokens(AllToken);
+    document.getElementById("my_modal_3").close();
+  };
+
+  return (
+    <motion.div
+      initial={{ y: -500, opacity: 0 }}
+      animate={{
+        y: 0,
+        opacity: 1,
+        transition: {
+          type: "spring",
+          stiffness: 120,
+          damping: 10,
+          mass: 1,
+          bounce: 0.5,
+          duration: 2,
+        },
+      }}
+      className="mt-4 rounded-2xl"
+    >
+      <div className="relative p-6 bg-black border-2 border-black shadow-lg">
+        <div className="absolute inset-0 -translate-y-3 border-4 -translate-x-3 border-black bg-white"></div>
+        <div className="relative z-10">
+          <div className="relative z-10 h-auto w-full flex flex-col">
+            <div className="text-4xl font-semibold text-center">Swap</div>
+
+            {/* Token Input 1 */}
+            <div className="mx-4 my-2 bg-gray-50">
+              <div className="flex h-32 justify-between items-center gap-4 p-4">
+                <input
+                  type="text"
+                  value={formAmmount}
+                  placeholder="0.023"
+                  className="input p-2 focus:border-none rounded-none input-bordered text-lg w-1/2 max-w-xs h-14"
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (/^\d*\.?\d*$/.test(value)) {
+                      SetFromAmmount(value);
+                    }
+                  }}
+                />
+                <button
+                  className="w-44 p-2 flex justify-evenly border-2 border-black"
+                  onClick={handleOpenModal}
+                >
+                  <span>
+                    {token1 ? (
+                      <div className="flex items-center justify-around w-44">
+                        <img
+                          src={token1.logoURI}
+                          alt={"img"}
+                          className="w-10 h-10 cover rounded-full"
+                          onError={(e) =>
+                            (e.target.src = "https://via.placeholder.com/40")
+                          }
+                        />
+                        <span>{token1.symbol}</span>
+                      </div>
+                    ) : (
+                      <p>Select Token</p>
+                    )}
+                  </span>
+                </button>
+
+                <dialog
+                  id="my_modal_2"
+                  ref={modalRef}
+                  className="fixed modal inset-0 flex justify-center items-center bg-gray-100 z-50"
+                >
+                  <div className="modal-box bg-white rounded-lg p-4 max-h-[80vh] overflow-y-auto">
+                    <div>
+                      <h2>Search Tokens</h2>
+                      <div className="flex justify-around">
+                        <input
+                          type="text"
+                          value={searchKeyword}
+                          placeholder="Search Tokens"
+                          className="input w-full mx-4 h-12 focus:border-none input-bordered rounded-none"
+                          onChange={(e) => {
+                            SetSearchItem(e.target.value);
+                            searchTokens(e.target.value);
+                          }}
+                        />
+                        <button
+                          className="btn rounded-none btn-success p-4 h-12 hover:bg-gray-300 border-2 hover:border-2 hover:border-black border-black"
+                          onClick={() => searchTokens(searchKeyword)}
+                        >
+                          Search
+                        </button>
+                      </div>
+                    </div>
+                    {tokens.map((token) => (
+                      <div
+                        key={token.address}
+                        className="cursor-pointer flex items-center gap-4 p-2 hover:bg-gray-200 rounded-md"
+                        onClick={() => handleChangeToken(token)}
+                      >
+                        <img
+                          src={token.logoURI}
+                          alt={token.symbol}
+                          className="w-10 h-10 rounded-full cover"
+                          onError={(e) =>
+                            (e.target.src = "https://via.placeholder.com/40")
+                          }
+                        />
+                        <div className="flex font-sans px-4 flex-col text-justify">
+                          <span>{token.name}</span>
+                          <span>{token.symbol}</span>
+                        </div>
+                      </div>
+                    ))}
+                    <button
+                      className="mt-4 bg-red-500 text-white px-4 py-2 rounded"
+                      onClick={() =>
+                        document.getElementById("my_modal_2").close()
+                      }
+                    >
+                      Close
+                    </button>
+                  </div>
+                </dialog>
+              </div>
+            </div>
+
+            {/* Gas Estimate and Swap Button */}
+            <div>
+              <p className="text-start mx-6 my-2">Estimated Gas: {gas} Wei</p>
+              <div className="btn btn-success mx-4 rounded-2xl my-2 h-20 items-center flex justify-center">
+                <p className="text-2xl font-bold text-black">Swap</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+export default Swap;

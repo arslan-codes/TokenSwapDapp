@@ -1,22 +1,114 @@
-import React from "react";
-import { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
+import axios from "axios";
+import { RiExchangeBoxLine } from "react-icons/ri";
+import { ethers } from "ethers";
+
 const Swap = () => {
-  const [TokenText, SetTokenText] = useState("Select Token");
-  const [token2, SetTokenText2] = useState("Select Token");
+  const modalRef = useRef(null);
+  const [token1, setToken1] = useState();
+  const [token2, setToken2] = useState();
 
-  const [gas, Setgas] = useState(0.0);
+  const [formAmmount, SetFromAmmount] = useState(); //price to sell
+  const [toAmount, SettoAmount] = useState(); //price to get
+  const [price, setPrice] = useState();
+  const [searchKeyword, SetSearchItem] = useState();
+  const [AllToken, ResetALLToken] = useState();
 
-  const tokens = ["abc", "abdf", "dsfksd", "dfsdb"];
+  const [tokens, setAllTokens] = useState([]);
+  const [gas, SetGas] = useState(0.0);
+  // 593f132c-54c2-4cd9-a3aa-880f5ee4880c
+  useEffect(() => {
+    async function fetch() {
+      console.log("Fetching tokens...");
+      try {
+        const response = await axios.get(
+          "https://tokens.coingecko.com/uniswap/all.json"
+        );
+        // const tokens = response.data.tokens.slice(0, 100);
+        setAllTokens(response.data.tokens.slice(0, 100) || []);
+        ResetALLToken(response.data.tokens.slice(0, 100) || []);
+      } catch (error) {
+        console.error("Error fetching tokens:", error);
+      }
+    }
+    fetch();
+    console.log("fetched");
+  }, []);
 
+  function searchTokens(value) {
+    if (!value) {
+      // Reset tokens to the original list when the search value is cleared
+      setAllTokens(AllToken);
+    } else {
+      // Filter tokens based on the search value
+      const filteredTokens = tokens.filter((item) =>
+        item.name.toLowerCase().includes(value.toLowerCase())
+      );
+      setAllTokens(filteredTokens);
+    }
+  }
+
+  async function Getprice() {
+    if (!formAmmount) return;
+
+    const params = {
+      sellToken: token1.address, // Token being sold
+      buyToken: token2.address, // Token being bought
+      sellAmount: ethers.parseUnits(formAmmount, token1.decimals).toString(), // Sell amount in smallest units
+      taker: "0x244a901b522818899bf702223f8841510B75713f",
+    };
+
+    try {
+      const response = await axios.get("/proxy/price", { params });
+
+      console.log("Price response:", response.data);
+
+      if (response.data && response.data.buyAmount) {
+        setPrice(response.data); // Save the response data to your state
+        SettoAmount(
+          ethers.formatUnits(response.data.buyAmount, token2.decimals)
+        ); // Format the buy amount for display
+      } else {
+        console.error("Invalid response data:", response.data);
+      }
+    } catch (error) {
+      console.error(
+        "Price fetch error:",
+        error.response?.data || error.message
+      );
+    }
+  }
+
+  useEffect(() => {
+    if (formAmmount) {
+      const timer = setTimeout(Getprice, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [formAmmount, token1, token2]);
+  const handleOpenModal = () => {
+    const modal = document.getElementById("my_modal_2");
+
+    modal.showModal();
+    if (modalRef.current) {
+      modalRef.current.scrollTop = 0;
+    }
+  };
   const handleChangeToken = (token) => {
-    SetTokenText(token);
+    // SetTokenText(token.symbol);
+    // SetToken1Image(token.logoURI);
+    setToken1(token);
+    setAllTokens(AllToken);
+
     document.getElementById("my_modal_2").close();
   };
+
   const handleChangeTokenBelow = (token) => {
-    SetTokenText2(token);
+    setToken2(token);
+    setAllTokens(AllToken);
     document.getElementById("my_modal_3").close();
   };
+
   return (
     <motion.div
       initial={{ y: -500, opacity: 0 }}
@@ -32,82 +124,232 @@ const Swap = () => {
           duration: 2,
         },
       }}
-      className="mt-4 rounded-2xl"
+      className="mt-4 rounded-2xl "
     >
-      <div className=" h-auto w-full  p-6 border-2 rounded-2xl flex flex-col">
-        <div className="text-4xl font-semibold text-start">Swap</div>
-        <div className=" mx-4 rounded-2xl my-2 bg-gray-100">
-          <div className="flex h-32 justify-center items-center gap-4 p-4">
-            <input
-              type="text"
-              placeholder="Amount "
-              className="input input-bordered focus:border-none w-1/2 max-w-xs"
-            />
-            {/* Open the modal using document.getElementById('ID').showModal() method */}
-            <button
-              className="btn"
-              onClick={() => document.getElementById("my_modal_2").showModal()}
-            >
-              {TokenText}
-            </button>
-            <dialog id="my_modal_2" className="modal">
-              <div className="modal-box bg-none ">
-                {tokens.map((token, index) => (
-                  <p
-                    key={index}
-                    className="cursor-pointer p-2 hover:bg-gray-200 rounded-md"
-                    onClick={() => handleChangeToken(token)}
-                  >
-                    {token}
-                  </p>
-                ))}
+      <div class="relative p-6 bg-black border-2 border-black shadow-lg">
+        <div class="absolute inset-0 -translate-y-3 border-4 -translate-x-3 border-black bg-white"></div>
+        <div class="relative z-10 ">
+          <div className=" relative z-10 h-auto w-full  flex flex-col">
+            <div className="text-4xl font-semibold  text-center">
+              <div className="flex justify-center ">
+                <RiExchangeBoxLine className="h-10 mx-4" />
+                <span> Swap</span>
               </div>
-              <form method="dialog" className="modal-backdrop">
-                <button>close</button>
-              </form>
-            </dialog>
-          </div>
-        </div>
-        {/*  */}
-        <div className=" mx-4 rounded-2xl my-2 bg-gray-100">
-          <div className="flex h-32 justify-center items-center gap-4 p-4">
-            <input
-              type="text"
-              placeholder="Amount "
-              className="input input-bordered focus:border-none w-1/2 max-w-xs"
-            />
-            {/* Open the modal using document.getElementById('ID').showModal() method */}
-            <button
-              className="btn"
-              onClick={() => document.getElementById("my_modal_3").showModal()}
-            >
-              {token2}
-            </button>
-            <dialog id="my_modal_3" className="modal">
-              <div className="modal-box bg-none ">
-                {tokens.map((token, index) => (
-                  <p
-                    key={index}
-                    className="cursor-pointer p-2 hover:bg-gray-200 rounded-md"
-                    onClick={() => handleChangeTokenBelow(token)}
-                  >
-                    {token}
-                  </p>
-                ))}
+            </div>
+
+            {/* Token Input 1 */}
+            <div className="mx-4  my-2 bg-gray-50">
+              <div className="flex h-32 justify-between items-center gap-4 p-4 ">
+                <input
+                  type="text"
+                  value={formAmmount}
+                  placeholder="0.023"
+                  className="input p-2 focus:border-none rounded-none input-bordered text-lg w-1/2 max-w-xs h-14"
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    // Allow only numbers and decimals
+                    if (/^\d*\.?\d*$/.test(value)) {
+                      SetFromAmmount(value);
+                    }
+                  }}
+                />
+
+                <button
+                  className="w-44 p-2 flex justify-evenly border-2 border-black hover:bg-gray-200"
+                  onClick={handleOpenModal}
+                >
+                  {/* {token4.name} */}
+                  <span>
+                    {" "}
+                    {token1 ? (
+                      <div className="flex items-center justify-around w-44 ">
+                        <img
+                          src={token1.logoURI}
+                          alt={"img"}
+                          className="w-10 h-10 cover rounded-full"
+                          onError={(e) =>
+                            (e.target.src = "https://via.placeholder.com/40")
+                          }
+                        />
+                        <span>{token1.symbol}</span>
+                      </div>
+                    ) : (
+                      <p>Select Token</p>
+                    )}{" "}
+                  </span>
+                </button>
+
+                <dialog
+                  id="my_modal_2"
+                  ref={modalRef}
+                  className="fixed modal inset-0 flex justify-center items-center  bg-gray-100 z-50"
+                >
+                  <div className="modal-box bg-white rounded-lg p-4 max-h-[80vh] overflow-y-auto">
+                    <div>
+                      <h2 className="text-xl font-semibold uppercase py-2">
+                        Search Tokens
+                      </h2>
+                      <div className="flex justify-around">
+                        <input
+                          type="text"
+                          value={searchKeyword}
+                          placeholder="Search Tokens"
+                          className="input w-full mx-4 h-12 focus:border-none input-bordered rounded-none"
+                          onChange={(e) => {
+                            SetSearchItem(e.target.value);
+                            searchTokens(e.target.value);
+                          }}
+                        />
+                        <button
+                          className="btn  rounded-none btn-success p-4 h-12 hover:bg-gray-300  border-2 hover:border-2 hover:border-black border-black"
+                          onClick={searchTokens}
+                        >
+                          Search
+                        </button>
+                      </div>
+                    </div>
+                    {tokens.map((token) => (
+                      <div
+                        key={token.address}
+                        className="cursor-pointer flex items-center gap-4 p-2 hover:bg-gray-200 rounded-md"
+                        onClick={() => handleChangeToken(token)}
+                      >
+                        <img
+                          src={token.logoURI}
+                          alt={token.symbol}
+                          className="w-10 h-10 rounded-full cover"
+                          onError={(e) =>
+                            (e.target.src = "https://via.placeholder.com/40")
+                          }
+                        />
+                        <div className="flex font-sans px-4 flex-col  text-justify">
+                          <span>{token.name}</span>
+                          <span>{token.symbol}</span>
+                        </div>
+                      </div>
+                    ))}
+                    <button
+                      className="mt-4 bg-red-500 text-white px-4 py-2 rounded"
+                      onClick={() =>
+                        document.getElementById("my_modal_2").close()
+                      }
+                    >
+                      Close
+                    </button>
+                  </div>
+                </dialog>
               </div>
-              <form method="dialog" className="modal-backdrop">
-                <button>close</button>
-              </form>
-            </dialog>
-          </div>
-        </div>
-        <div>
-          <div className="text-start mx-6 my-2 ">
-            <p>Estimated Gas : {gas} Wei</p>
-          </div>
-          <div>
-            <div className=" btn btn-success  mx-4 rounded-2xl my-2 h-20 items-center flex justify-center">
-              <p className="text-2xl font-bold text-black">Swap </p>
+            </div>
+
+            {/* Token Input 2 */}
+            <div className="mx-4  my-2 bg-gray-50 ">
+              <div className="flex h-32 justify-between items-center gap-4 p-4">
+                <input
+                  type="text"
+                  value={toAmount}
+                  placeholder="0.023"
+                  className="input p-2 focus:border-none rounded-none input-bordered text-lg w-1/2 max-w-xs h-14"
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    // Allow only numbers and decimals
+                    if (/^\d*\.?\d*$/.test(value)) {
+                      SettoAmount(value);
+                    }
+                  }}
+                />
+                <button
+                  className="w-44 p-2 flex justify-evenly border-2 border-black hover:bg-gray-200"
+                  onClick={() =>
+                    document.getElementById("my_modal_3").showModal()
+                  }
+                >
+                  <span>
+                    {" "}
+                    {token2 ? (
+                      <div className="flex items-center justify-around w-44 ">
+                        <img
+                          src={token2.logoURI}
+                          alt={"img"}
+                          className="w-10 h-10 cover rounded-full"
+                          onError={(e) =>
+                            (e.target.src = "https://via.placeholder.com/40")
+                          }
+                        />
+                        <span>{token2.symbol}</span>
+                      </div>
+                    ) : (
+                      <p>Select Token</p>
+                    )}{" "}
+                  </span>
+                </button>
+
+                <dialog
+                  id="my_modal_3"
+                  className="fixed modal inset-0 flex justify-center items-center bg-black bg-opacity-50 backdrop-blur-sm z-50"
+                >
+                  <div className="modal-box  rounded-lg p-4 max-h-[80vh] overflow-y-auto">
+                    <div>
+                      <h2 className="text-xl font-semibold uppercase py-2">
+                        Search Tokens
+                      </h2>
+                      <div className="flex justify-around">
+                        <input
+                          type="text"
+                          value={searchKeyword}
+                          placeholder="Search Tokens"
+                          className="input w-full mx-4 h-12 focus:border-none input-bordered rounded-none"
+                          onChange={(e) => {
+                            SetSearchItem(e.target.value);
+                            searchTokens(e.target.value);
+                          }}
+                        />
+                        <button
+                          className="btn  rounded-none btn-success p-4 h-12 hover:bg-gray-300  border-2 hover:border-2 hover:border-black border-black"
+                          onClick={searchTokens}
+                        >
+                          Search
+                        </button>
+                      </div>
+                    </div>
+                    {tokens.map((token) => (
+                      <div
+                        key={token.address}
+                        className="cursor-pointer flex items-center  p-2 hover:bg-gray-200 rounded-md"
+                        onClick={() => handleChangeTokenBelow(token)}
+                      >
+                        <img
+                          src={token.logoURI}
+                          alt={token.symbol}
+                          className="w-8 h-8 rounded-full"
+                          onError={(e) =>
+                            (e.target.src = "https://via.placeholder.com/40")
+                          }
+                        />
+                        <div className="flex font-sans px-4 flex-col  text-justify">
+                          <span>{token.name}</span>
+                          <span>{token.symbol}</span>
+                        </div>
+                      </div>
+                    ))}
+                    <button
+                      className="mt-4 bg-red-500 text-white px-4 py-2 rounded"
+                      onClick={() =>
+                        document.getElementById("my_modal_3").close()
+                      }
+                    >
+                      Close
+                    </button>
+                  </div>
+                </dialog>
+              </div>
+            </div>
+
+            {/* Gas Estimate and Swap Button */}
+            <div>
+              <p className="text-start mx-6 my-2">Estimated Gas: {gas} Wei</p>
+              <div className="btn btn-success mx-4 rounded-2xl my-2 h-20 items-center flex justify-center">
+                <p className="text-2xl font-bold text-black">Swap</p>
+              </div>
             </div>
           </div>
         </div>
