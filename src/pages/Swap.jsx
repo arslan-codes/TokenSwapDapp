@@ -27,11 +27,19 @@ const Swap = () => {
       console.log("Fetching tokens...");
       try {
         const response = await axios.get(
-          "https://tokens.coingecko.com/uniswap/all.json"
+          "https://tokens.coingecko.com/uniswap/all.json",
+          {
+            params: {
+              vs_currency: "usd",
+              order: "volume_desc", // Sorting by trading volume
+              per_page: 50, // Limit to top 50 tokens
+              page: 1,
+            },
+          }
         );
         // const tokens = response.data.tokens.slice(0, 100);
-        setAllTokens(response.data.tokens.slice(0, 100) || []);
-        ResetALLToken(response.data.tokens.slice(0, 100) || []);
+        setAllTokens(response.data.tokens.slice(50, 100) || []);
+        ResetALLToken(response.data.tokens.slice(50, 100) || []);
       } catch (error) {
         console.error("Error fetching tokens:", error);
       }
@@ -117,6 +125,10 @@ const Swap = () => {
         { headers }
       );
       console.log(response);
+      console.log(response.data);
+      const buyAmount =
+        (await response.buyAmount) / 10 ** token1.address.decimals;
+      console.log(buyAmount);
     } catch (error) {
       console.log(error.message);
     }
