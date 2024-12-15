@@ -1,13 +1,17 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { RiExchangeBoxLine } from "react-icons/ri";
 import { ethers } from "ethers";
+import DexContext from "./Context";
+const ZEROX_API_KEY = import.meta.env.ZEROX_API_KEY;
 
+import qs from "qs";
 const Swap = () => {
   const modalRef = useRef(null);
   const [token1, setToken1] = useState();
   const [token2, setToken2] = useState();
+  const { ConnectWallet, account, msg } = useContext(DexContext);
 
   const [formAmmount, SetFromAmmount] = useState(); //price to sell
   const [toAmount, SettoAmount] = useState(); //price to get
@@ -49,43 +53,81 @@ const Swap = () => {
     }
   }
 
+  // async function Getprice() {
+  //   if (!formAmmount || !token1 || !token2) return;
+
+  //   const params = {
+  //     sellToken: token1.address,
+  //     buyToken: token2.address,
+  //     sellAmount: ethers.parseUnits(formAmmount, token1.decimals).toString(),
+  //     taker: account, // Use the actual wallet address
+  //     chainId: 1, // Mainnet chain ID
+  //   };
+
+  //   console.log("Requesting quote with params:", params);
+
+  //   try {
+  //     const response = await axios.get("/proxy/quote", {
+  //       params,
+  //       responseType: "json",
+  //       timeout: 10000, // Optional: Timeout for the request
+  //     });
+
+  //     console.log("Quote response:", response.data);
+
+  //     if (response.data && response.data.buyAmount) {
+  //       const formattedBuyAmount = ethers.formatUnits(
+  //         response.data.buyAmount,
+  //         token2.decimals
+  //       );
+
+  //       setPrice(response.data);
+  //       SettoAmount(formattedBuyAmount);
+
+  //       if (response.data.gas) {
+  //         SetGas(response.data.gas);
+  //       }
+  //     } else {
+  //       console.error("Invalid response structure:", response.data);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching quote:", {
+  //       message: error.message,
+  //       response: error.response?.data,
+  //     });
+  //   }
+  // }
   async function Getprice() {
-    if (!formAmmount) return;
-
-    const params = {
-      sellToken: token1.address, // Token being sold
-      buyToken: token2.address, // Token being bought
-      sellAmount: ethers.parseUnits(formAmmount, token1.decimals).toString(), // Sell amount in smallest units
-      taker: "0x244a901b522818899bf702223f8841510B75713f",
+    if (!formAmmount || !token1 || !token2) return;
+    const priceParams = {
+      chainId: 1,
+      sellToken: token1.address,
+      buyToken: token2.address,
+      sellAmount: ethers.parseUnits(formAmmount, token1.decimals),
+      taker: account,
     };
-
+    const headers = {
+      "0x-api-key": "593f132c-54c2-4cd9-a3aa-880f5ee4880c",
+      "0x-version": "v2",
+    };
+    console.log("params", priceParams, "");
     try {
-      const response = await axios.get("/proxy/price", { params });
-
-      console.log("Price response:", response.data);
-
-      if (response.data && response.data.buyAmount) {
-        setPrice(response.data); // Save the response data to your state
-        SettoAmount(
-          ethers.formatUnits(response.data.buyAmount, token2.decimals)
-        ); // Format the buy amount for display
-      } else {
-        console.error("Invalid response data:", response.data);
-      }
-    } catch (error) {
-      console.error(
-        "Price fetch error:",
-        error.response?.data || error.message
+      const response = await axios.get(
+        `/0x-api/swap/permit2/price?${qs.stringify(priceParams)}`,
+        { headers }
       );
+      console.log(response);
+    } catch (error) {
+      console.log(error.message);
     }
   }
-
   useEffect(() => {
-    if (formAmmount) {
+    if (formAmmount && token1 && token2) {
       const timer = setTimeout(Getprice, 500);
       return () => clearTimeout(timer);
     }
   }, [formAmmount, token1, token2]);
+
   const handleOpenModal = () => {
     const modal = document.getElementById("my_modal_2");
 
@@ -347,7 +389,7 @@ const Swap = () => {
             {/* Gas Estimate and Swap Button */}
             <div>
               <p className="text-start mx-6 my-2">Estimated Gas: {gas} Wei</p>
-              <div className="btn btn-success mx-4 rounded-2xl my-2 h-20 items-center flex justify-center">
+              <div className="btn btn-success mx-4 rounded-none  border-black my-2 h-20 items-center flex justify-center">
                 <p className="text-2xl font-bold text-black">Swap</p>
               </div>
             </div>

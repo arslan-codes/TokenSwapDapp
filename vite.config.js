@@ -5,11 +5,11 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      // Forward all requests starting with /api to your backend
-      "/api": "http://localhost:5173/",
-
-      // Forward 0x API requests to its endpoint (replace with the actual URL if needed)
-      "/0x-api": "https://api.0x.org", // Add this if you want to proxy 0x API
+      "/0x-api": {
+        target: "https://api.0x.org",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/0x-api/, ""), // Remove `/0x-api` from the path
+      },
     },
     hmr: true,
     watch: {
