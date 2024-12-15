@@ -16,30 +16,25 @@ const Swap = () => {
   const [formAmmount, SetFromAmmount] = useState(); //price to sell
   const [toAmount, SettoAmount] = useState(); //price to get
   const [price, setPrice] = useState();
+  const [ErrorMsg, setErrorMsg] = useState();
   const [searchKeyword, SetSearchItem] = useState();
   const [AllToken, ResetALLToken] = useState();
 
   const [tokens, setAllTokens] = useState([]);
   const [gas, SetGas] = useState(0.0);
   // 593f132c-54c2-4cd9-a3aa-880f5ee4880c
+
   useEffect(() => {
     async function fetch() {
       console.log("Fetching tokens...");
       try {
         const response = await axios.get(
-          "https://tokens.coingecko.com/uniswap/all.json",
-          {
-            params: {
-              vs_currency: "usd",
-              order: "volume_desc", // Sorting by trading volume
-              per_page: 50, // Limit to top 50 tokens
-              page: 1,
-            },
-          }
+          "https://wispy-bird-88a7.uniswap.workers.dev/?url=http://tokenlist.aave.eth.link"
         );
+
         // const tokens = response.data.tokens.slice(0, 100);
-        setAllTokens(response.data.tokens.slice(50, 100) || []);
-        ResetALLToken(response.data.tokens.slice(50, 100) || []);
+        setAllTokens(response.data.tokens || []);
+        ResetALLToken(response.data.tokens || []);
       } catch (error) {
         console.error("Error fetching tokens:", error);
       }
@@ -61,50 +56,6 @@ const Swap = () => {
     }
   }
 
-  // async function Getprice() {
-  //   if (!formAmmount || !token1 || !token2) return;
-
-  //   const params = {
-  //     sellToken: token1.address,
-  //     buyToken: token2.address,
-  //     sellAmount: ethers.parseUnits(formAmmount, token1.decimals).toString(),
-  //     taker: account, // Use the actual wallet address
-  //     chainId: 1, // Mainnet chain ID
-  //   };
-
-  //   console.log("Requesting quote with params:", params);
-
-  //   try {
-  //     const response = await axios.get("/proxy/quote", {
-  //       params,
-  //       responseType: "json",
-  //       timeout: 10000, // Optional: Timeout for the request
-  //     });
-
-  //     console.log("Quote response:", response.data);
-
-  //     if (response.data && response.data.buyAmount) {
-  //       const formattedBuyAmount = ethers.formatUnits(
-  //         response.data.buyAmount,
-  //         token2.decimals
-  //       );
-
-  //       setPrice(response.data);
-  //       SettoAmount(formattedBuyAmount);
-
-  //       if (response.data.gas) {
-  //         SetGas(response.data.gas);
-  //       }
-  //     } else {
-  //       console.error("Invalid response structure:", response.data);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error fetching quote:", {
-  //       message: error.message,
-  //       response: error.response?.data,
-  //     });
-  //   }
-  // }
   async function Getprice() {
     if (!formAmmount || !token1 || !token2) return;
     const priceParams = {
@@ -121,14 +72,25 @@ const Swap = () => {
     console.log("params", priceParams, "");
     try {
       const response = await axios.get(
-        `/0x-api/swap/permit2/price?${qs.stringify(priceParams)}`,
+        `/0x-api/swap/permit2/quote?${qs.stringify(priceParams)}`,
         { headers }
       );
+      if (response.data.liquidityAvailable === false) {
+        setErrorMsg("Liquidity is unavailable for the given trade");
+        SettoAmount(0);
+        console.log("Liquidity is unavailable for the given trade.");
+        return; // exit the function or handle accordingly
+      }
+      setErrorMsg("");
+      const buyAmount = response.data.buyAmount / 10 ** token2.decimals;
+      // const gasEstimate = response.data.gas;
+      const gasEstimate =
+        response.data?.fees?.gasFee ?? "Gas fee not available";
+      console.log(gasEstimate);
+
       console.log(response);
-      console.log(response.data);
-      const buyAmount =
-        (await response.buyAmount) / 10 ** token1.address.decimals;
-      console.log(buyAmount);
+      console.log(buyAmount, gasEstimate);
+      SettoAmount(buyAmount);
     } catch (error) {
       console.log(error.message);
     }
@@ -161,6 +123,14 @@ const Swap = () => {
     setToken2(token);
     setAllTokens(AllToken);
     document.getElementById("my_modal_3").close();
+  };
+
+  const getLogoUrl = (logoURI) => {
+    // If the logo URI starts with 'ipfs://', convert it to a full IPFS URL
+    if (logoURI && logoURI.startsWith("ipfs://")) {
+      return `https://ipfs.io/ipfs/${logoURI.split("ipfs://")[1]}`;
+    }
+    return logoURI || "https://via.placeholder.com/40"; // Default image if no logo
   };
 
   return (
@@ -218,7 +188,7 @@ const Swap = () => {
                     {token1 ? (
                       <div className="flex items-center justify-around w-44 ">
                         <img
-                          src={token1.logoURI}
+                          src={getLogoUrl(token1.logoURI)}
                           alt={"img"}
                           className="w-10 h-10 cover rounded-full"
                           onError={(e) =>
@@ -269,7 +239,7 @@ const Swap = () => {
                         onClick={() => handleChangeToken(token)}
                       >
                         <img
-                          src={token.logoURI}
+                          src={getLogoUrl(token.logoURI)}
                           alt={token.symbol}
                           className="w-10 h-10 rounded-full cover"
                           onError={(e) =>
@@ -294,7 +264,13 @@ const Swap = () => {
                 </dialog>
               </div>
             </div>
-
+            {ErrorMsg ? (
+              <div className=" mx-4 shadow-2xl h-10 border-4 border-black shadow-black bg-red-300 text-white">
+                {ErrorMsg}
+              </div>
+            ) : (
+              <p></p>
+            )}
             {/* Token Input 2 */}
             <div className="mx-4  my-2 bg-gray-50 ">
               <div className="flex h-32 justify-between items-center gap-4 p-4">
@@ -322,7 +298,7 @@ const Swap = () => {
                     {token2 ? (
                       <div className="flex items-center justify-around w-44 ">
                         <img
-                          src={token2.logoURI}
+                          src={getLogoUrl(token2.logoURI)}
                           alt={"img"}
                           className="w-10 h-10 cover rounded-full"
                           onError={(e) =>
@@ -372,7 +348,7 @@ const Swap = () => {
                         onClick={() => handleChangeTokenBelow(token)}
                       >
                         <img
-                          src={token.logoURI}
+                          src={getLogoUrl(token.logoURI)}
                           alt={token.symbol}
                           className="w-8 h-8 rounded-full"
                           onError={(e) =>
