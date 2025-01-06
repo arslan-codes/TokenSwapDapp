@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useContext } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { RiExchangeBoxLine } from "react-icons/ri";
+
 import { ethers } from "ethers";
 import DexContext from "./Context";
 const ZEROX_API_KEY = import.meta.env.ZEROX_API_KEY;
@@ -15,7 +16,7 @@ const Swap = () => {
 
   const [formAmmount, SetFromAmmount] = useState(); //price to sell
   const [toAmount, SettoAmount] = useState(); //price to get
-  const [price, setPrice] = useState();
+  const [swapValue, SetSwapValue] = useState();
   const [ErrorMsg, setErrorMsg] = useState();
   const [searchKeyword, SetSearchItem] = useState();
   const [AllToken, ResetALLToken] = useState();
@@ -82,6 +83,8 @@ const Swap = () => {
         return; // exit the function or handle accordingly
       }
       setErrorMsg("");
+      SetSwapValue(response);
+
       const buyAmount = response.data.buyAmount / 10 ** token2.decimals;
       // const gasEstimate = response.data.gas;
       const gasEstimate =
@@ -91,10 +94,58 @@ const Swap = () => {
       console.log(response);
       console.log(buyAmount, gasEstimate);
       SettoAmount(buyAmount);
+      SetGas(response.data.estimatedGas);
+      console.log(gas);
     } catch (error) {
       console.log(error.message);
     }
   }
+
+  const TrySwap = async () => {
+    if (!account) {
+      alert("Please connect your wallet");
+      return;
+    }
+
+    try {
+      const swapJson = swapValue; // Data for the swap
+
+      // Initialize the ethers provider with MetaMask's injected provider
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner(); // Get the signer (the connected wallet)
+
+      // ERC-20 token ABI for approval
+      const erc20Abi = [
+        "function allowance(address owner, address spender) public view returns (uint256)",
+        "function approve(address spender, uint256 amount) public returns (bool)",
+      ];
+
+      // Initialize the token contract (for the token you want to approve)
+      const tokenContract = new ethers.Contract(
+        token1.address,
+        erc20Abi,
+        signer
+      );
+
+      // Set the max approval (a very large number, equivalent to the max uint256)
+      const maxApproval = ethers.constants.MaxUint256;
+
+      // Approve the token transfer to the target spender address
+      const approvalTx = await tokenContract.approve(
+        swapJson.allowanceTarget,
+        maxApproval
+      );
+      await approvalTx.wait(); // Wait for the transaction to be mined
+
+      console.log("Approval transaction successful");
+
+      // Now, execute the swap operation (implement the swap logic here)
+      // Swap function logic would go here, depending on how the swap is structured
+    } catch (error) {
+      console.error("Error executing swap:", error);
+    }
+  };
+
   useEffect(() => {
     if (formAmmount && token1 && token2) {
       const timer = setTimeout(Getprice, 500);
@@ -378,7 +429,9 @@ const Swap = () => {
             <div>
               <p className="text-start mx-6 my-2">Estimated Gas: {gas} Wei</p>
               <div className="btn btn-success mx-4 rounded-none  border-black my-2 h-20 items-center flex justify-center">
-                <p className="text-2xl font-bold text-black">Swap</p>
+                <p className="text-2xl font-bold text-black" onClick={TrySwap}>
+                  Swap
+                </p>
               </div>
             </div>
           </div>
