@@ -102,19 +102,17 @@ const Swap = () => {
   }
 
   const TrySwap = async () => {
+    console.log("about to swap");
     if (!account) {
       alert("Please connect your wallet");
       return;
     }
-
     try {
+      console.log("in try catch");
       const swapJson = swapValue; // Data for the swap
-
-      // Initialize the ethers provider with MetaMask's injected provider
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner(); // Get the signer (the connected wallet)
 
-      // ERC-20 token ABI for approval
       const erc20Abi = [
         "function allowance(address owner, address spender) public view returns (uint256)",
         "function approve(address spender, uint256 amount) public returns (bool)",
