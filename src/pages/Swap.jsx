@@ -102,45 +102,53 @@ const Swap = () => {
   }
 
   const TrySwap = async () => {
-    console.log("about to swap");
+    console.log("Attempting to execute swap...");
     if (!account) {
       alert("Please connect your wallet");
       return;
     }
+
     try {
-      console.log("in try catch");
-      const swapJson = swapValue; // Data for the swap
+      console.log("Sending approval ...");
+
+      if (!swapValue) {
+        console.error("Swap value is not defined.");
+        return;
+      }
+
+      const allowanceTarget = swapValue.data.allowanceTarget;
+      if (!allowanceTarget) {
+        console.error("Allowance target is missing in swap data.");
+        return;
+      }
+      console.log(allowanceTarget);
+
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner(); // Get the signer (the connected wallet)
+      const signer = provider.getSigner();
 
       const erc20Abi = [
         "function allowance(address owner, address spender) public view returns (uint256)",
         "function approve(address spender, uint256 amount) public returns (bool)",
       ];
 
-      // Initialize the token contract (for the token you want to approve)
       const tokenContract = new ethers.Contract(
         token1.address,
         erc20Abi,
         signer
       );
-
-      // Set the max approval (a very large number, equivalent to the max uint256)
       const maxApproval = ethers.constants.MaxUint256;
 
-      // Approve the token transfer to the target spender address
+      console.log("Sending approval transaction...");
       const approvalTx = await tokenContract.approve(
-        swapJson.allowanceTarget,
+        allowanceTarget,
         maxApproval
       );
-      await approvalTx.wait(); // Wait for the transaction to be mined
-
+      await approvalTx.wait();
       console.log("Approval transaction successful");
 
-      // Now, execute the swap operation (implement the swap logic here)
-      // Swap function logic would go here, depending on how the swap is structured
+      // Implement your swap logic here.
     } catch (error) {
-      console.error("Error executing swap:", error);
+      console.error("Error during swap operation:", error);
     }
   };
 
