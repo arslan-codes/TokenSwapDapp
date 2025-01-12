@@ -1,8 +1,7 @@
-import colors from "tailwindcss/colors"; // Use import instead of require
-
+/** @type {import('tailwindcss').Config} */
+const colors = require("tailwindcss/colors");
 export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
-
   theme: {
     extend: {
       fontFamily: {
@@ -11,6 +10,7 @@ export default {
         spartanSemi: ["spartanSemiBold", "sans-serif"],
         spartanLight: ["spartanLight", "sans-serif"],
         virgil: ["virgil", "sans-serif"],
+
         // Geist: ["GeistSans", "sans-serif"],
         sans: ["Inter", "sans-serif"],
         knewave: ["knewave", "sans-serif"],
@@ -43,7 +43,7 @@ export default {
           accent: colors.pink[500],
           neutral: colors.gray[500],
           "base-100": colors.white,
-          success: "#affc41", // This ensures DaisyUI picks up your custom success color
+          // success: "#affc41", // This ensures DaisyUI picks up your custom success color
         },
       },
     ],
